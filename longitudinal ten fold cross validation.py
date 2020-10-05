@@ -1,7 +1,9 @@
 from utility import *
+from config import *
+from sklearn.preprocessing import StandardScaler
+from lightgbm import LGBMClassifier
+import time
 
-# Can be 'Eclipse', 'Openstack'
-project = 'Libreoffice'
 feature_df = load_features(project)
 feature_list = get_initial_feature_list()
 

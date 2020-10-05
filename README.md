@@ -1,2 +1,4 @@
 # Predict-Code-Changes
-Predict the merge probability of Gerrit code changes
+Predicts the merge probability of Gerrit code changes.
+Experimentation has been performed using three
+OSS Gerrit projects LibreOffice, Eclipse and OpenStack.

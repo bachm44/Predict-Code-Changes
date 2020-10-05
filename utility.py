@@ -1,24 +1,7 @@
 import pandas as pd
-from lightgbm import LGBMClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import roc_auc_score, accuracy_score, precision_recall_fscore_support, f1_score
+from sklearn.metrics import roc_auc_score, accuracy_score, precision_recall_fscore_support
 import numpy as np
-import time
-
-seed = 7
-folds = 11
-root = 'data'
-target = 'status'
-
-features_group = {
-    'author': ['author_experience', 'author_merge_ratio', 'author_changes_per_week',
-               'author_merge_ratio_in_project', 'total_change_num', 'author_review_num'],
-    'text': ['description_length','is_documentation','is_bug_fixing','is_feature'],
-    'project': ['project_changes_per_week', 'project_merge_ratio', 'changes_per_author'],
-    'reviewer': ['reviewers_num', 'avg_reviewer_experience', 'avg_reviewer_review_count'],
-    'code': ['lines_added','lines_deleted','files_added','files_deleted', 'files_modified','directory_num',
-             'modify_entropy']
-}
+from config import *
 
 
 def get_initial_feature_list() -> [str]:
@@ -35,8 +18,9 @@ def load_features(project, revision_no=1):
     if revision_no is not None:
         feature_df = feature_df[feature_df['revision_no'] == revision_no]
 
-    # selected_changes = pd.read_csv(f"{root}/selected changes/{project}_selected_changes.csv")[['change_id']]
-    # feature_df = selected_changes.merge(feature_df, on=['change_id'], how='inner')
+    selected_changes = pd.read_csv(f"{root}/selected changes/{project}_selected_changes.csv")[['change_id']]
+    feature_df = selected_changes.merge(feature_df, on=['change_id'], how='inner')
+
     feature_df = feature_df.sort_values(by=['created'], ascending=True).reset_index(drop=True)
     return feature_df
 
