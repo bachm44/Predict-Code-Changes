@@ -1,0 +1,24 @@
+{
+    "registered_on": "2018-08-25 14:18:56.000000000",
+    "_account_id": 164180,
+    "name": "Hannes Vogt",
+    "email": "hannes@havogt.de",
+    "secondary_emails": [
+        "webmaster@havogt.de"
+    ],
+    "username": "hvogt7tk",
+    "avatars": [
+        {
+            "url": "https://www.gravatar.com/avatar/11d3303294888249dcdf105406fa811f.jpg?d=identicon&r=pg&s=26",
+            "height": 26
+        },
+        {
+            "url": "https://www.gravatar.com/avatar/11d3303294888249dcdf105406fa811f.jpg?d=identicon&r=pg&s=32",
+            "height": 32
+        },
+        {
+            "url": "https://www.gravatar.com/avatar/11d3303294888249dcdf105406fa811f.jpg?d=identicon&r=pg&s=100",
+            "height": 100
+        }
+    ]
+}
