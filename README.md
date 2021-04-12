@@ -52,7 +52,9 @@ change request is submitted and assigned to a reviewer. Improving the state-of-t
     *<b> Util</b>: Contains some util methods.
     
 # How to run
-Open `Predict-Code-Change` as project in Pycharm or any other python IDE.
+Open `Predict-Code-Change` as project in Pycharm or any other python IDE. People interested in testing the 
+tool should directly jump to [Experimentation](#exp) section. All the data need for running the experiments are
+already uploaded. If you want to run them on your own mined dataset, complete the following two sections first.
 ## Mining
 * Run the `Complete Mining Process.py` file to start mining.
 * Set the project name, make sure Gerrit class has corresponding Gerrit server address for this project.
@@ -98,7 +100,7 @@ from `Project_selected_change_list.csv` and searches for their corresponding min
   
 
 
-## Experimentation
+## <a id="exp">Experimentation</a> 
 * Set config values in file `config.py`. For example project, number of runs, folds, 
   feature list, data path, seed.
   
