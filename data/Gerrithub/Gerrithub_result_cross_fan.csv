@@ -1,0 +1,11 @@
+index,train,test,new_developers
+fold,5.500,5.500,5.500
+auc,0.835,0.749,0.646
+accuracy,0.781,0.736,0.755
+cost_effectiveness,0.991,0.982,0.863
+precision_m,0.962,0.941,0.763
+recall_m,0.788,0.746,0.975
+f1_score_m,0.865,0.828,0.855
+precision_a,0.283,0.235,0.513
+recall_a,0.720,0.591,0.077
+f1_score_a,0.404,0.328,0.128
