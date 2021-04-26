@@ -40,6 +40,8 @@ shared in this [Google Drive](https://drive.google.com/drive/folders/1z2KmxgYNgO
       
     * <b>config</b> : Basic configuration for data path and models. Reduce the number of multiple runs here if
       you want the results fast. Change which project to run models on.
+      
+    * <b>DNN model</b>: Contains the DNN model we built to find the best classifier for change prediction.
     * <b>Feature calculator</b>: Calculates feature sets from raw data created after
     mining.
     * <b>Feature calculator for Fan</b>: Calculates feature for state-of-the-art work by
