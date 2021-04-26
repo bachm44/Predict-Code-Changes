@@ -6,7 +6,7 @@ diff_root = f'{root}/diff'
 target = 'status'
 seed = 2021
 folds = 11
-runs = 2
+runs = 10
 account_list_filepath = f'{root}/{project}_account_list.csv'
 change_list_filepath = f'{root}/{project}_selected_change_list.csv'
 

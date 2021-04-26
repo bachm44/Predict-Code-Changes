@@ -1,14 +1,9 @@
-import pandas as pd
 from lightgbm import LGBMClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import roc_auc_score, accuracy_score, precision_recall_fscore_support, f1_score
-import numpy as np
 import time
-from config import *
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
-from imblearn.under_sampling import RandomUnderSampler
-from imblearn.over_sampling import RandomOverSampler
+from Util import *
 
 # to suppress convergence warning in LogisticRegression
 from warnings import simplefilter
@@ -26,7 +21,6 @@ def main():
     scaler = StandardScaler()
     df[feature_list] = scaler.fit_transform(df[feature_list])
     # selecting_classifier(df, feature_list)
-    # hyper_tuning(df, feature_list)
 
     # this method does new author and effectiveness result also.
     cross_validation(df, df_copy, scaler)
@@ -39,145 +33,49 @@ def main():
 
 
 # achieved after hypertuning
-n_estimators = 500
-learning_rate = 0.01
+best_n_estimators = 500
+best_learning_rate = 0.01
 
 def get_model():
     return LGBMClassifier(class_weight='balanced', subsample=0.9, subsample_freq=1, random_state=np.random.randint(seed))
 
 def get_best_model():
-    return LGBMClassifier(class_weight='balanced', n_estimators=n_estimators, learning_rate=learning_rate,
+    return LGBMClassifier(class_weight='balanced', n_estimators=best_n_estimators, learning_rate=best_learning_rate,
                           subsample=0.9, subsample_freq=1, random_state=np.random.randint(seed))
 
-def selecting_classifier(df, feature_list):
-    models = [
-        RandomForestClassifier(class_weight='balanced'),
-        GradientBoostingClassifier(), # class weight parameter does not apply for gradient boosting
-        ExtraTreesClassifier(class_weight='balanced'),
-        LogisticRegression(class_weight='balanced', solver='saga'), # solver='saga' needed for randomness
-        LGBMClassifier(class_weight='balanced')
-    ]
 
-    for model in models:
-        print(model.__class__.__name__)
-        total_result = None
-        for run in range(runs):
-            result = Result()
-            for fold in range(1, folds):
-                train_size = df.shape[0] * fold // folds
-                test_size = min(df.shape[0] * (fold + 1) // folds, df.shape[0])
+def selecting_classifier(df):
+    print("Selecting best classifier with AUC, F1(M) and F1(A)")
+    print("RandomForest")
+    for n_estimators in [100, 500]:
+        for max_depth in [None, 10, 15]:
+            print(n_estimators, max_depth)
+            run_model(RandomForestClassifier(class_weight='balanced', n_estimators=n_estimators, max_depth=max_depth), df)
 
-                x_train, y_train = df.loc[:train_size - 1, feature_list], \
-                                   df.loc[:train_size - 1, target]
-                x_test, y_test = df.loc[train_size:test_size - 1, feature_list], \
-                                 df.loc[train_size:test_size - 1, target]
+    print("GradientBoost")
+    for n_estimators in [100, 500]:
+        for learning_rate in [0.1, 0.01]:
+            print(n_estimators, learning_rate)
+            run_model(GradientBoostingClassifier(n_estimators=n_estimators, learning_rate=learning_rate), df)
 
-                # because LightGBM does not sample data by default, hence would have given same results in each run
-                if model.__class__.__name__ == 'LGBMClassifier': clf = get_model()
-                else: clf = model
-                clf.fit(x_train, y_train)
+    print("ExtraTrees")
+    for n_estimators in [100, 500]:
+        for max_depth in [None, 5, 10]:
+            print(n_estimators, max_depth)
+            run_model(ExtraTreesClassifier(class_weight='balanced', n_estimators=n_estimators, max_depth=max_depth), df)
 
-                y_prob = clf.predict_proba(x_test)[:, 1]
-                result.calculate_result(y_test, y_prob, fold, False)
+    print("LogisticRegression")
+    for max_iter in [50, 100, 500]:
+        print(max_iter)
+        run_model(LogisticRegression(class_weight='balanced', solver='saga', max_iter=max_iter), df)
 
-            result_df = result.get_df()
-            if run:
-                total_result += result_df
-            else: total_result = result_df
-
-        total_result /= runs
-        total_result = total_result.mean()
-        print(total_result[['auc', 'f1_score_m', 'f1_score_a']].values)
-        print()
-
-    print("UnderSampling and OverSampling train data")
-    # parameters are not set as train data is randomly sampled
-    models = [
-        RandomForestClassifier(),
-        GradientBoostingClassifier(),
-        ExtraTreesClassifier(),
-        LogisticRegression(),
-        LGBMClassifier()
-    ]
-
-    underSampler = RandomUnderSampler()
-    overSampler = RandomOverSampler()
-    for model in models:
-        print(model.__class__.__name__)
-        total_under_result = total_over_result = None
-        for run in range(runs):
-            under_result, over_result = Result(), Result()
-            for fold in range(1, folds):
-                train_size = df.shape[0] * fold // folds
-                test_size = min(df.shape[0] * (fold + 1) // folds, df.shape[0])
-
-                x_train, y_train = df.loc[:train_size - 1, feature_list], \
-                                   df.loc[:train_size - 1, target]
-
-                x_train_under, y_train_under = underSampler.fit_resample(x_train, y_train)
-                x_test, y_test = df.loc[train_size:test_size - 1, feature_list], \
-                                 df.loc[train_size:test_size - 1, target]
-
-                clf = model
-                clf.fit(x_train_under, y_train_under)
-
-                y_prob = clf.predict_proba(x_test)[:, 1]
-                under_result.calculate_result(y_test, y_prob, fold, False)
-
-                x_train_over, y_train_over = overSampler.fit_resample(x_train, y_train)
-                clf = model
-                clf.fit(x_train_over, y_train_over)
-                y_prob = clf.predict_proba(x_test)[:, 1]
-                over_result.calculate_result(y_test, y_prob, fold, False)
-
-            result_df = under_result.get_df()
-            if run: total_under_result += result_df
-            else: total_under_result = result_df
-
-            result_df = over_result.get_df()
-            if run: total_over_result += result_df
-            else: total_over_result = result_df
-
-        total_under_result /= runs
-        total_over_result /= runs
-
-        total_under_result, total_over_result = total_under_result.mean(), total_over_result.mean()
-        print(total_under_result[['auc', 'f1_score_m', 'f1_score_a']].values, total_over_result[['auc', 'f1_score_m', 'f1_score_a']].values)
-        print()
-
-
-def hyper_tuning(df, feature_list):
-    total_result = None
+    print("LightGBM")
     for n_estimators in [100, 500]:
         for learning_rate in [0.1, 0.01]:
                 print(n_estimators, learning_rate)
-                for run in range(runs):
-                    result = Result()
-                    for fold in range(1, folds):
-                        train_size = df.shape[0] * fold // folds
-                        test_size = min(df.shape[0] * (fold + 1) // folds, df.shape[0])
-
-                        x_train, y_train = df.loc[:train_size - 1, feature_list], \
-                                           df.loc[:train_size - 1, target]
-                        x_test, y_test = df.loc[train_size:test_size - 1, feature_list], \
-                                         df.loc[train_size:test_size - 1, target]
-
-                        clf = get_model()
-                        clf.fit(x_train, y_train)
-
-                        y_prob = clf.predict_proba(x_test)[:, 1]
-                        result.calculate_result(y_test, y_prob, fold, False)
-
-                    result_df = result.get_df()
-                    if run:
-                        total_result += result_df
-                    else:
-                        total_result = result_df
-
-                total_result /= runs
-                total_result = total_result.mean()
-                print(total_result[['auc', 'f1_score_m', 'f1_score_a']].values)
-                print()
+                model = LGBMClassifier(class_weight='balanced', n_estimators=n_estimators, random_state=np.random.randint(seed),
+                                     learning_rate=learning_rate, subsample=0.9, subsample_freq=1)
+                run_model(model, df)
 
 
 def multiple_revisions():
@@ -388,93 +286,12 @@ def dimension_validation(df):
                 result.calculate_result(y_test, y_prob, fold, False)
 
             result_df = result.get_df()
-            if run: total_result+= result_df
+            if run: total_result += result_df
             else: total_result = result_df
 
         total_result /= runs
         print(total_result.mean())
         print()
-
-
-class Result:
-    def __init__(self):
-        self.folds = []
-        self.auc = []
-        self.accuracy = []
-        self.effectiveness = []
-
-        self.precision_m = []
-        self.recall_m = []
-        self.f1_score_m = []
-
-        self.precision_a = []
-        self.recall_a = []
-        self.f1_score_a = []
-
-    # evaluates the percentage of merged code changes over the top K%
-    # suspicious merged code changes
-    @staticmethod
-    def cost_effectiveness(y_true, y_score, k):
-        df = pd.DataFrame({'class': y_true, 'pred': y_score})
-        df = df.sort_values(by=['pred'], ascending=False).reset_index(drop=True)
-        if k > 100:
-            print('K must be  > 0 and < 100')
-            return -1
-        df = df.iloc[:df.shape[0] * k // 100]
-
-        merged_changes = df[df['class'] == 1].shape[0]
-        changes = df.shape[0]
-
-        if changes:
-            return merged_changes / changes
-        else:
-            return 0
-
-    def calculate_result(self, y_true, y_score, fold=None, verbose=False):
-        if fold is not None:
-            self.folds.append(fold)
-
-        auc = roc_auc_score(y_true, y_score)
-        cost_effectiveness = Result.cost_effectiveness(y_true, y_score, 20)
-        if verbose: print(f'AUC {auc}, cost effectiveness {cost_effectiveness}.')
-        self.auc.append(auc)
-
-        self.effectiveness.append(cost_effectiveness)
-
-        y_pred = np.round(y_score)
-
-        self.accuracy.append(accuracy_score(y_true, y_pred))
-
-        precision, recall, f1_score, _ = precision_recall_fscore_support(y_true, y_pred, labels=[0, 1], average=None)
-        if verbose: print(f'precision {precision}, recall {recall}, f1_score {f1_score}.')
-        self.precision_a.append(precision[0])
-        self.recall_a.append(recall[0])
-        self.f1_score_a.append(f1_score[0])
-
-        self.precision_m.append(precision[1])
-        self.recall_m.append(recall[1])
-        self.f1_score_m.append(f1_score[1])
-
-    def get_df(self):
-        return pd.DataFrame({
-            'fold': self.folds,
-            'auc': self.auc,
-            'accuracy': self.accuracy,
-            'cost_effectiveness': self.effectiveness,
-            'precision_m': self.precision_m,
-            'recall_m': self.recall_m,
-            'f1_score_m': self.f1_score_m,
-            'precision_a': self.precision_a,
-            'recall_a': self.recall_a,
-            'f1_score_a': self.f1_score_a,
-        })
-
-    def process(self, number):
-        return np.round(np.mean(number), 2)
-
-    def show(self):
-        print(
-            f"{self.process(self.auc)} & {self.process(self.effectiveness)} & {self.process(self.f1_score_m)} & {self.process(self.precision_m)} & {self.process(self.recall_m)} & {self.process(self.f1_score_a)} & {self.process(self.precision_a)} & {self.process(self.recall_a)}")
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ based machine learning classifier which can,</b>
 
 * Predict whether a code change request will be merged with on average 85% AUC score as soon as the
 change request is submitted and assigned to a reviewer. Improving the state-of-the-art [[1]](#1) 
-  by 19-27%.
+  by 18-28%.
 * Even for new authors, predict merge probability with on average 78% AUC score. Improving the state-of-the-art [[1]](#1) 
   by 21-31%.
 * Provides two adjusted approaches to update prediction for each new revision of the same change request,
@@ -16,20 +16,30 @@ change request is submitted and assigned to a reviewer. Improving the state-of-t
   
 * Complete training within several seconds, hence feasible to use in real world projects.
   
+We have mined changes from the following Gerrit projects
+* [Eclipse](https://git.eclipse.org/r)
+* [Gerrithub](https://review.gerrithub.io)
+* [Libreoffice](https://gerrit.libreoffice.org)
 
 # Project Structure 
 * Data :
-  
-  Each project directory contains their raw data, features and experimentation 
-  results.
     * Eclipse
     * Gerrithub
     * Libreoffice
+
+
+  Each project directory contains their features and experimentation 
+  results. After mining the raw data, they will be stored here also. For 
+  file size limit in GitHub we are unable to upload them here. But they are 
+shared in this [Google Drive](https://drive.google.com/drive/folders/1z2KmxgYNgO5sNBHZLb_Nm43bFqH4vi2g?usp=sharing). 
+  You can download the raw dataset for a single project too from there and calculate the features from scratch if 
+  you want. Just unzip the files and keep the folder structure same as shown in Section [Mining](#mining).
 * Code
     * <b>Complete Mining Process</b>: Contains complete raw change data mining steps 
       (except file diff).
       
-    * <b>config</b> : Basic configuration for data path and models.
+    * <b>config</b> : Basic configuration for data path and models. Reduce the number of multiple runs here if
+      you want the results fast. Change which project to run models on.
     * <b>Feature calculator</b>: Calculates feature sets from raw data created after
     mining.
     * <b>Feature calculator for Fan</b>: Calculates feature for state-of-the-art work by
@@ -52,10 +62,10 @@ change request is submitted and assigned to a reviewer. Improving the state-of-t
     *<b> Util</b>: Contains some util methods.
     
 # How to run
-Open `Predict-Code-Change` as project in Pycharm or any other python IDE. People interested in testing the 
+Open `Predict-Code-Change` as project in Pycharm or any other python IDE. People interested in just testing the 
 tool should directly jump to [Experimentation](#exp) section. All the data need for running the experiments are
 already uploaded. If you want to run them on your own mined dataset, complete the following two sections first.
-## Mining
+## <a id="mining">Mining</a> 
 * Run the `Complete Mining Process.py` file to start mining.
 * Set the project name, make sure Gerrit class has corresponding Gerrit server address for this project.
 * Check if the directories for the data to be dumbed is created.
@@ -76,14 +86,14 @@ mining changes. Also, occasionally Gerrit will close connections or send
   response not found messages. Rerunning the miner might fix that issue sometimes.
   
 
-* With mined data project structure will look like this for each project
+* With mined data project structure will look similar to this for each project
   * Eclipse
     * change : Batch of change requests
     * changes: Individual change requests.
     * diff: File diff content for first revision of each change request.
     * profile: Profile of Gerrit authors.
 
-## Feature calculation
+## <a id="feature_calculation">Feature calculation</a> 
 * This step can run only after completing previous mining steps.
 * Currently, our raw data isn't added here.
 * Run `Feature calculator.py` to calculate features from raw data. It sorts selected changes 
@@ -120,5 +130,4 @@ from `Project_selected_change_list.csv` and searches for their corresponding min
 <a id="1">[1]</a> 
 [Y. Fan, X. Xia, D. Lo, S. Li, Early prediction of merged code changes to prioritizereviewing tasks, 
 Empirical Software Engineering (2018) 1–48.](https://link.springer.com/content/pdf/10.1007/s10664-018-9602-0.pdf)
-
 

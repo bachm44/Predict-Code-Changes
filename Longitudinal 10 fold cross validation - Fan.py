@@ -1,10 +1,6 @@
-import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import roc_auc_score, accuracy_score, precision_recall_fscore_support
-import numpy as np
 import time
-from config import *
+from Util import *
 
 
 feature_list = ['change_num', 'recent_change_num', 'subsystem_change_num', 'review_num', 'merged_ratio',
@@ -25,6 +21,16 @@ feature_list = ['change_num', 'recent_change_num', 'subsystem_change_num', 'revi
 def main():
     print(project)
     df = pd.read_csv(f'{root}/{project}_fan_fixed.csv')
+
+    # # hyper-tuning
+    # for n_estimators in [100, 500]:
+    #     for max_depth in [None, 2, 3, 5, 10]:
+    #         print(n_estimators, max_depth)
+    #         run_model(RandomForestClassifier(class_weight='balanced', n_estimators=n_estimators,max_depth=max_depth),
+    #                   df, feature_list=feature_list)
+    best_n_estimators = 500
+    best_max_depth = 5
+
     train_results = None
     test_results = None
     new_author_results = None
@@ -46,7 +52,8 @@ def main():
                              df.loc[train_size:test_size - 1, target]
 
             start = time.time()
-            clf = RandomForestClassifier(class_weight='balanced')
+            clf = RandomForestClassifier(class_weight='balanced', n_estimators=best_n_estimators,
+                                         max_depth=best_max_depth)
             clf.fit(x_train, y_train)
             train_time[fold].append(time.time() - start)
 
@@ -104,91 +111,10 @@ def main():
     test_results['time'] = test_time.values()
     print(train_results['time'].mean())
 
-    # train_results.to_csv(f'{root}/{project}_train_result_cross.csv', index=False, float_format='%.3f')
-    # test_results.to_csv(f'{root}/{project}_test_result_cross.csv', index=False, float_format='%.3f')
-    # result_df.to_csv(f'{root}/{project}_result_cross.csv', index=False, float_format='%.3f')
+    train_results.to_csv(f'{root}/{project}_train_result_fan_cross.csv', index=False, float_format='%.3f')
+    test_results.to_csv(f'{root}/{project}_test_result_fan_cross.csv', index=False, float_format='%.3f')
+    result_df.to_csv(f'{root}/{project}_result_fan_cross.csv', index=False, float_format='%.3f')
     print()
-
-
-class Result:
-    def __init__(self):
-        self.folds = []
-        self.auc = []
-        self.accuracy = []
-        self.effectiveness = []
-
-        self.precision_m = []
-        self.recall_m = []
-        self.f1_score_m = []
-
-        self.precision_a = []
-        self.recall_a = []
-        self.f1_score_a = []
-
-    # evaluates the percentage of merged code changes over the top K%
-    # suspicious merged code changes
-    @staticmethod
-    def cost_effectiveness(y_true, y_score, k):
-        df = pd.DataFrame({'class': y_true, 'pred': y_score})
-        df = df.sort_values(by=['pred'], ascending=False).reset_index(drop=True)
-        if k > 100:
-            print('K must be  > 0 and < 100')
-            return -1
-        df = df.iloc[:df.shape[0] * k // 100]
-
-        merged_changes = df[df['class'] == 1].shape[0]
-        changes = df.shape[0]
-
-        if changes:
-            return merged_changes / changes
-        else:
-            return 0
-
-    def calculate_result(self, y_true, y_score, fold=None, verbose=False):
-        if fold is not None:
-            self.folds.append(fold)
-
-        auc = roc_auc_score(y_true, y_score)
-        cost_effectiveness = Result.cost_effectiveness(y_true, y_score, 20)
-        if verbose: print(f'AUC {auc}, cost effectiveness {cost_effectiveness}.')
-        self.auc.append(auc)
-
-        self.effectiveness.append(cost_effectiveness)
-
-        y_pred = np.round(y_score)
-
-        self.accuracy.append(accuracy_score(y_true, y_pred))
-
-        precision, recall, f1_score, _ = precision_recall_fscore_support(y_true, y_pred, labels=[0, 1], average=None)
-        if verbose: print(f'precision {precision}, recall {recall}, f1_score {f1_score}.')
-        self.precision_a.append(precision[0])
-        self.recall_a.append(recall[0])
-        self.f1_score_a.append(f1_score[0])
-
-        self.precision_m.append(precision[1])
-        self.recall_m.append(recall[1])
-        self.f1_score_m.append(f1_score[1])
-
-    def get_df(self):
-        return pd.DataFrame({
-            'fold': self.folds,
-            'auc': self.auc,
-            'accuracy': self.accuracy,
-            'cost_effectiveness': self.effectiveness,
-            'precision_m': self.precision_m,
-            'recall_m': self.recall_m,
-            'f1_score_m': self.f1_score_m,
-            'precision_a': self.precision_a,
-            'recall_a': self.recall_a,
-            'f1_score_a': self.f1_score_a,
-        })
-
-    def process(self, number):
-        return np.round(np.mean(number), 2)
-
-    def show(self):
-        print(
-            f"{self.process(self.auc)} & {self.process(self.effectiveness)} & {self.process(self.f1_score_m)} & {self.process(self.precision_m)} & {self.process(self.recall_m)} & {self.process(self.f1_score_a)} & {self.process(self.precision_a)} & {self.process(self.recall_a)}")
 
 
 if __name__ == '__main__':
