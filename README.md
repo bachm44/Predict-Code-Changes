@@ -1,4 +1,4 @@
-# Early Prediction for Merged vs Abandoned CodeChanges in Code Reviews
+# Early Prediction for Merged vs Abandoned CodeChanges in Modern Code Reviews 
 This is a tool to predict whether a code change request will be merged or abandoned as
 soon as it has been uploaded and can update its predictions with each new revision. 
 The tool is developed for Gerrit based code review systems. Its objective is to help
