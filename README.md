@@ -35,12 +35,13 @@ shared in this [Google Drive](https://drive.google.com/drive/folders/1z2KmxgYNgO
   You can download the raw dataset for a single project too from there and calculate the features from scratch if 
   you want. Just unzip the files and keep the folder structure same as shown in Section [Mining](#mining).
 * Code
-    * <b>Complete Mining Process</b>: Contains complete raw change data mining steps 
+    * <b>Calculate developer effort</b>: Calculates developer effort in terms of duration of days, number of messages and number of changes per code change.
+    * <b>Complete mining process</b>: Contains complete raw change data mining steps 
       (except file diff).
       
-    * <b>config</b> : Basic configuration for data path and models. Reduce the number of multiple runs here if
+    * <b>Config</b> : Basic configuration for data path and models. Reduce the number of multiple runs here if
       you want the results fast. Change which project to run models on.
-      
+    * <b>Cross project validation</b>: Calculates model performance across projects. 
     * <b>DNN model</b>: Contains the DNN model we built to find the best classifier for change prediction.
     * <b>Feature calculator</b>: Calculates feature sets from raw data created after
     mining.
@@ -60,8 +61,8 @@ shared in this [Google Drive](https://drive.google.com/drive/folders/1z2KmxgYNgO
     Used later to calculated code segment related features.
   
     * <b>Miner</b>: Contains the miner class implementation, used to mine code changes from Gerrit.
-  * <b> SimpleParser </b>: Parses the json responses from Gerrit server and return them in Class.
-    *<b> Util</b>: Contains some util methods.
+* <b> SimpleParser </b>: Parses the json responses from Gerrit server and return them in Class.
+  *<b> Util</b>: Contains some util methods.
     
 # How to run
 Open `Predict-Code-Change` as project in Pycharm or any other python IDE. People interested in just testing the 

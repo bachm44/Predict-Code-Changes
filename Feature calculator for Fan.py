@@ -6,17 +6,13 @@ from datetime import timedelta
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+from Config import *
 
-projects = ['Libreoffice', 'Eclipse', 'Gerrithub']
-project = projects[2]
-root = f"Data/{project}"
-changes_root = f"{root}/changes"
-diff_root = f'{root}/diff'
 
-account_list_df = pd.read_csv(f'{root}/{project}_account_list.csv')
+account_list_df = pd.read_csv(account_list_filepath)
 account_list_df['registered_on'] = pd.to_datetime(account_list_df['registered_on'])
 
-change_list_df = joblib.load(f'{root}/{project}_selected_change_list.csv')
+change_list_df = joblib.load(selected_change_list_filepath)
 change_list_df = change_list_df.sort_values(by=['change_id']).reset_index(drop=True)
 for col in ['created', 'updated']:
     change_list_df.loc[:, col] = change_list_df[col].apply(pd.to_datetime)
@@ -26,7 +22,7 @@ file_feature_maps = {}
 
 
 def main():
-    output_file_name = f"{root}/{project}_fan_fixed2.csv"
+    output_file_name = f"{root}/{project}_fan_fixed.csv"
 
     features_list = [
         'change_num', 'recent_change_num', 'subsystem_change_num', 'review_num', 'merged_ratio',
