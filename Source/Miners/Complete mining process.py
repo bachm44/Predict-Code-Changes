@@ -2,68 +2,68 @@ from Miner import *
 import os, joblib
 from SimpleParser import *
 from tqdm import tqdm
-from Util import *
+from Source.Util import *
 
 # changes created and closed within this time is selected by select_changes method.
 before = {'Libreoffice': '2019', 'Eclipse': '2017', 'Gerrithub': '2019'}
 after = {'Libreoffice': '2012', 'Eclipse': '2012', 'Gerrithub': '2016'}
 
 def main():
-    # # create data directories if mining for the first time
-    # initialize_dirs(projects)
+    # create data directories if mining for the first time
+    initialize_dirs()
+
+    # 1. Initialize miner with data root
+    gerrit = Gerrit[project.lower()]
+    if gerrit is None:
+        print(f'Failed to get a valid gerrit type for {gerrit}. Exiting.')
+        exit(-1)
+
+    miner = Miner(gerrit=gerrit, root=root, replace=False)
     #
-    # # 1. Initialize miner with data root
-    # gerrit = Gerrit[project.lower()]
-    # if gerrit is None:
-    #     print(f'Failed to get a valid gerrit type for {gerrit}. Exiting.')
-    #     exit(-1)
-    #
-    # miner = Miner(gerrit=gerrit, root=root, replace=False)
-    # #
-    # # # 2. Download change details
-    # parameters = Parameters(
-    #     status=Status.closed, start_index=0, end_index=500, n_jobs=4, batch_size=100,
-    #     after='', before='2019-00-00 00:00:00.000000000',
-    #     fields=[Field.all_revisions, Field.all_files, Field.messages, Field.detailed_labels, Field.all_commits]
-    # )
-    #
-    # result = miner.change_details_mine(sub_directory=change_folder, parameters=parameters, timeout=300)
-    # for url, did_succeed in result:
-    #     if did_succeed is False:
-    #         print(f"{url} failed .")
+    # # 2. Download change details
+    parameters = Parameters(
+        status=Status.closed, start_index=0, end_index=500, n_jobs=4, batch_size=100,
+        after='', before='2019-00-00 00:00:00.000000000',
+        fields=[Field.all_revisions, Field.all_files, Field.messages, Field.detailed_labels, Field.all_commits]
+    )
+
+    result = miner.change_details_mine(sub_directory=change_folder, parameters=parameters, timeout=300)
+    for url, did_succeed in result:
+        if did_succeed is False:
+            print(f"{url} failed .")
 
     # 3. make a list of change_ids out of downloaded data
     make_change_list()
 
     # 4. make a list of accounts
-    # account_list_path = os.path.join(root, project + "_account_list.csv")
-    # make_account_list(change_list_path, account_list_path)
-    #
-    # # 5. mine accounts
-    # df = pd.read_csv(account_list_path)
-    # miner.profiles_mine(df['account_id'].values)
-    #
-    # # 6. download join dates
-    # account_ids = pd.read_csv(account_list_path)["account_id"].values
-    # miner.profiles_mine(sorted(account_ids))
-    #
-    # # 7. extract join date
-    # profile_root = f"{root}/profile"
-    # extract_join_dates(profile_root, account_list_path, change_list_path)
-    #
-    # # 8. select changes
+    account_list_path = os.path.join(root, project + "_account_list.csv")
+    make_account_list()
+
+    # 5. mine accounts
+    df = pd.read_csv(account_list_path)
+    miner.profiles_mine(df['account_id'].values)
+
+    # 6. download join dates
+    account_ids = pd.read_csv(account_list_path)["account_id"].values
+    miner.profiles_mine(sorted(account_ids))
+
+    # 7. extract join date
+    profile_root = f"{root}/profile"
+    extract_join_dates(profile_root)
+
+    # 8. select changes
     selected_changes_path = f"{root}/{project}_selected_changes.csv"
-    # select_changes(selected_changes_path)
-    #
-    # # 9. break batch change file contents into individual change file
-    # broken_changes_directory = f"{root}/changes"
-    # break_changes(project, change_directory_path, broken_changes_directory)
+    select_changes(selected_changes_path)
+
+    # 9. break batch change file contents into individual change file
+    broken_changes_directory = f"{root}/changes"
+    break_changes(broken_changes_directory)
 
     # this is better to do after selecting changes
     # 10. mine change diff using 'Mine file diff.py' file.
 
     # remove changes from the selected changes list for which file diff content was not found
-    # remove_changes_without_diff(selected_changes_path)
+    remove_changes_without_diff(selected_changes_path)
 
 
 def is_profile_file(filename: str) -> bool:
@@ -71,7 +71,7 @@ def is_profile_file(filename: str) -> bool:
     return bool(re.fullmatch(pattern, filename))
 
 
-def extract_join_dates(profile_root, account_list_path, change_list_path):
+def extract_join_dates(profile_root):
     accounts = []
     joindates = []
     names = []
@@ -87,7 +87,7 @@ def extract_join_dates(profile_root, account_list_path, change_list_path):
 
     joindate = pd.DataFrame({'account_id': accounts, 'name': names, 'registered_on': joindates})
 
-    account_list = pd.read_csv(account_list_path)[['account_id']]
+    account_list = pd.read_csv(account_list_filepath)[['account_id']]
     account_list = account_list.merge(joindate, on=['account_id'], how='left', sort=True)
 
     accounts = account_list['account_id'].astype(int).values
@@ -95,7 +95,7 @@ def extract_join_dates(profile_root, account_list_path, change_list_path):
     dates = pd.to_datetime(account_list['registered_on']).values
 
     # find the earliest record for this account in change list
-    change_list_df = joblib.load(change_list_path)
+    change_list_df = joblib.load(change_list_filepath)
     change_list_df['created'] = pd.to_datetime(change_list_df['created'])
 
     for index, account_id in tqdm(enumerate(accounts)):
@@ -134,7 +134,7 @@ def extract_join_dates(profile_root, account_list_path, change_list_path):
             dates[index] = dates[next_index]
 
     account_list['registered_on'] = dates
-    account_list.to_csv(account_list_path, index=False)
+    account_list.to_csv(account_list_filepath, index=False)
 
 
 def make_change_list():
@@ -156,7 +156,6 @@ def make_change_list():
     }
 
     for filename in tqdm(filenames):
-    # for filename in filenames:
         # print(f"Working on {filename}")
         with open(os.path.join(change_directory_path, filename), 'r', encoding='utf-8') as input_file:
             for change_json in load_change_jsons(input_file):
@@ -182,10 +181,9 @@ def make_change_list():
     joblib.dump(change_list_df, change_list_filepath)
 
 
-def is_bot(project, name):
-    project = project.lower()
+def is_bot(name):
     name = name.lower()
-    if (project in name) or name == 'do not use':
+    if (project.lower() in name) or name == 'do not use':
         return True
 
     words = name.split()
@@ -196,9 +194,9 @@ def is_bot(project, name):
     return False
 
 
-def find_and_remove_bot_accounts(project, change_list_path, account_list_path):
+def find_and_remove_bot_accounts():
     print("Finding and removing bot accounts")
-    df = pd.read_csv(account_list_path)
+    df = pd.read_csv(account_list_filepath)
     names = df['name'].fillna('').values
     account_ids = df['account_id'].values
     bots = []
@@ -208,9 +206,9 @@ def find_and_remove_bot_accounts(project, change_list_path, account_list_path):
             bots.append(account_ids[index])
     print()
     df = df[~df['account_id'].isin(bots)]
-    df.to_csv(account_list_path, index=False)
+    df.to_csv(account_list_filepath, index=False)
 
-    df = joblib.load(change_list_path)
+    df = joblib.load(change_list_filepath)
     reviewers_list = df['reviewers'].values
 
     result = []
@@ -221,7 +219,7 @@ def find_and_remove_bot_accounts(project, change_list_path, account_list_path):
                 reviewers.append(account_id)
         result.append(reviewers)
     df['reviewers'] = result
-    joblib.dump(df, change_list_path)
+    joblib.dump(df, change_list_filepath)
 
 
 def remove_changes_without_diff(selected_changes_path):
@@ -239,7 +237,7 @@ def remove_changes_without_diff(selected_changes_path):
     joblib.dump(df, selected_change_list_filepath)
 
 
-def break_changes(project, change_directory_path, broken_changes_directory):
+def break_changes(broken_changes_directory):
     print("Breaking changes into individual files")
     if not os.path.exists(broken_changes_directory):
         os.mkdir(broken_changes_directory)
@@ -253,7 +251,7 @@ def break_changes(project, change_directory_path, broken_changes_directory):
                     json.dump(change_json, output_file, indent=4)
 
 
-def make_account_list(change_list_filepath, account_list_filepath):
+def make_account_list():
     change_list_df = joblib.load(change_list_filepath)
     accounts = set(change_list_df['owner'].values)
     accounts.update(set(np.concatenate(change_list_df['reviewers'].values)))

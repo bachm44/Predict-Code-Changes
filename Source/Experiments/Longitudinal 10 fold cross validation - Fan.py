@@ -1,6 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
 import time
-from ..Util import *
+from Source.Util import *
 
 
 feature_list = ['change_num', 'recent_change_num', 'subsystem_change_num', 'review_num', 'merged_ratio',

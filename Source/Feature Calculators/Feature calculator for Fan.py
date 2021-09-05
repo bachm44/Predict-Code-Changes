@@ -1,6 +1,6 @@
 import joblib
 from tqdm import tqdm
-from SimpleParser import *
+from Source.Miners.SimpleParser import *
 import pandas as pd
 from datetime import timedelta
 import numpy as np

@@ -117,7 +117,23 @@ class Result:
             f"{self.process(self.auc)} & {self.process(self.effectiveness)} & {self.process(self.f1_score_m)} & {self.process(self.precision_m)} & {self.process(self.recall_m)} & {self.process(self.f1_score_a)} & {self.process(self.precision_a)} & {self.process(self.recall_a)}")
 
 
+def initialize_dirs():
+    if not os.path.exists(data_folder):
+        os.mkdir(data_folder)
 
+    if not os.path.exists(result_folder):
+        os.mkdir(result_folder)
+
+    for project in projects:
+        if not os.path.exists(f'{data_folder}/{project}'):
+            os.mkdir(f'{data_folder}/{project}')
+
+        if not os.path.exists(f'{result_folder}/{project}'):
+            os.mkdir(f'{result_folder}/{project}')
+
+        for dirname in ['change', 'changes', 'diff', 'profile']:
+            if not os.path.exists(f'Data/{project}/{dirname}'):
+                os.mkdir(f'Data/{project}/{dirname}')
 
 
 def initialize(path, file_header):

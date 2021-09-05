@@ -1,16 +1,14 @@
-import os
-
 projects = ['Libreoffice', 'Eclipse', 'Gerrithub']
 project = projects[0]
 
-data_folder = "Data"
+data_folder = "../../Data"
 root = f"{data_folder}/{project}"
 change_folder = "change"
 change_directory_path = f'{root}/{change_folder}'
 changes_root = f"{root}/changes"
 diff_root = f'{root}/diff'
 
-result_folder = "Results"
+result_folder = "../../Results"
 result_project_folder = f"{result_folder}/{project}"
 
 target = 'status'
@@ -42,26 +40,4 @@ def get_initial_feature_list() -> [str]:
     return feature_list
 
 
-def initialize_dirs():
-    if not os.path.exists(data_folder):
-        os.mkdir(data_folder)
-
-    if not os.path.exists(result_folder):
-        os.mkdir(result_folder)
-
-    for project in projects:
-        if not os.path.exists(f'{data_folder}/{project}'):
-            os.mkdir(f'{data_folder}/{project}')
-
-        if not os.path.exists(f'{result_folder}/{project}'):
-            os.mkdir(f'{result_folder}/{project}')
-
-        for dirname in ['change', 'changes', 'diff', 'profile']:
-            if not os.path.exists(f'Data/{project}/{dirname}'):
-                os.mkdir(f'Data/{project}/{dirname}')
-
-
 initial_feature_list = get_initial_feature_list()
-
-# Uncomment the following if you don't have the necessary folders created
-# initialize_dirs()

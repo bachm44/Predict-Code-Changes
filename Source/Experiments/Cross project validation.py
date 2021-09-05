@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score, f1_score
-from ..Util import Result
+from Source.Util import Result
 
 best_n_estimators = 500
 best_learning_rate = 0.01
@@ -20,7 +20,7 @@ feature_list = initial_feature_list
 target = 'status'
 
 data = {
-    project: pd.read_csv(f'{root}/{project}.csv', encoding='utf-8') for project in projects
+    project: pd.read_csv(f'{data_folder}/{project}/{project}.csv', encoding='utf-8') for project in projects
 }
 
 for current_project in projects:
@@ -52,6 +52,7 @@ for current_project in projects:
         results = np.mean(results, axis=0)
         print(f'{other_project}: {np.round(results, 3)}')
         print()
+
 
 # Libreoffice
 # Eclipse: [0.643 0.951 0.852 0.23 ]

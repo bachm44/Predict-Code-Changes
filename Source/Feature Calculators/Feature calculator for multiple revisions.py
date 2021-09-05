@@ -1,11 +1,11 @@
 import joblib
 from tqdm import tqdm
-from Util import *
-from SimpleParser import *
+from Source.Util import *
+from Source.Miners.SimpleParser import *
 import pandas as pd
 from datetime import timedelta
 import numpy as np
-from config import *
+from Config import *
 
 account_list_df = pd.read_csv(account_list_filepath)
 account_list_df['registered_on'] = pd.to_datetime(account_list_df['registered_on'])
