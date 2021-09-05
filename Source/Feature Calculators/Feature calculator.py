@@ -1,7 +1,7 @@
 import joblib
 from tqdm import tqdm
-from Util import *
-from SimpleParser import *
+from ..Util import *
+from ..Miners.SimpleParser import *
 import pandas as pd
 from datetime import timedelta
 import numpy as np

@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score, f1_score
-from Util import Result
+from ..Util import Result
 
 best_n_estimators = 500
 best_learning_rate = 0.01

@@ -118,15 +118,6 @@ class Result:
 
 
 
-def initialize_dirs(projects):
-    if not os.path.exists('Data'):
-        os.mkdir('Data')
-    for project in projects:
-        if not os.path.exists(f'Data/{project}'):
-            os.mkdir(f'Data/{project}')
-        for dirname in ['change', 'changes', 'diff', 'profile']:
-            if not os.path.exists(f'Data/{project}/{dirname}'):
-                os.mkdir(f'Data/{project}/{dirname}')
 
 
 def initialize(path, file_header):
@@ -185,16 +176,6 @@ def is_profile_file(filename: str) -> bool:
 def is_profile_details_file(filename: str) -> bool:
     pattern = r'profile_details_[0-9]+.json'
     return bool(re.fullmatch(pattern, filename))
-
-
-def day_diff(date1, date2):
-    if type(date1) == str:
-        date1 = pd.to_datetime(date1)
-    if type(date2) == str:
-        date2 = pd.to_datetime(date2)
-
-    diff = date1 - date2
-    return diff.days + diff.seconds / 86400.0
 
 
 def make_date(date):

@@ -1,6 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
 import time
-from Util import *
+from ..Util import *
 
 
 feature_list = ['change_num', 'recent_change_num', 'subsystem_change_num', 'review_num', 'merged_ratio',
@@ -111,9 +111,9 @@ def main():
     test_results['time'] = test_time.values()
     print(train_results['time'].mean())
 
-    train_results.to_csv(f'{root}/{project}_train_result_fan_cross.csv', index=False, float_format='%.3f')
-    test_results.to_csv(f'{root}/{project}_test_result_fan_cross.csv', index=False, float_format='%.3f')
-    result_df.to_csv(f'{root}/{project}_result_fan_cross.csv', index=False, float_format='%.3f')
+    train_results.to_csv(f'{result_project_folder}/{project}_train_result_fan_cross.csv', index=False, float_format='%.3f')
+    test_results.to_csv(f'{result_project_folder}/{project}_test_result_fan_cross.csv', index=False, float_format='%.3f')
+    result_df.to_csv(f'{result_project_folder}/{project}_result_fan_cross.csv', index=False, float_format='%.3f')
     print()
 
 

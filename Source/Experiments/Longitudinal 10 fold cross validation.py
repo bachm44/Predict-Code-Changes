@@ -3,12 +3,17 @@ from sklearn.preprocessing import StandardScaler
 import time
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
-from Util import *
+from ..Util import *
 
 # to suppress convergence warning in LogisticRegression
 from warnings import simplefilter
 from sklearn.exceptions import ConvergenceWarning
 simplefilter("ignore", category=ConvergenceWarning)
+
+# achieved after hypertuning
+best_n_estimators = 500
+best_learning_rate = 0.01
+
 
 def main():
     feature_list = initial_feature_list
@@ -32,12 +37,9 @@ def main():
     # multiple_revisions()
 
 
-# achieved after hypertuning
-best_n_estimators = 500
-best_learning_rate = 0.01
-
 def get_model():
     return LGBMClassifier(class_weight='balanced', subsample=0.9, subsample_freq=1, random_state=np.random.randint(seed))
+
 
 def get_best_model():
     return LGBMClassifier(class_weight='balanced', n_estimators=best_n_estimators, learning_rate=best_learning_rate,
@@ -127,7 +129,6 @@ def multiple_revisions():
         for result in results:
             print(result.get_df().mean())
         print()
-        break
 
     print("Approach2 : result using history of prior patches")
     feature_list = initial_feature_list + late_features
@@ -165,7 +166,6 @@ def multiple_revisions():
         for result in results:
             print(result.get_df().mean())
         print()
-        break
 
 
 def cross_validation(df, df_copy, scaler):
@@ -248,16 +248,17 @@ def cross_validation(df, df_copy, scaler):
     train_results['time'] = train_time.values()
     test_results['time'] = test_time.values()
 
-    train_results.to_csv(f'{root}/{project}_train_result_cross.csv', index=False, float_format='%.3f')
-    test_results.to_csv(f'{root}/{project}_test_result_cross.csv', index=False, float_format='%.3f')
-    result_df.to_csv(f'{root}/{project}_result_cross.csv', index=False, float_format='%.3f')
+    train_results.to_csv(f'{result_project_folder}/{project}_train_result_cross.csv', index=False, float_format='%.3f')
+    test_results.to_csv(f'{result_project_folder}/{project}_test_result_cross.csv', index=False, float_format='%.3f')
+    result_df.to_csv(f'{result_project_folder}/{project}_result_cross.csv', index=False, float_format='%.3f')
 
     # process and dump feature importance
     feature_importance_df = pd.DataFrame({'feature': feature_list, 'importance': np.mean(feature_importances, axis=0)})
     feature_importance_df['importance'] = feature_importance_df['importance'] * 100 / feature_importance_df[
         'importance'].sum()
     feature_importance_df = feature_importance_df.sort_values(by='importance', ascending=False).reset_index(drop=True)
-    feature_importance_df.to_csv(f'{root}/{project}_feature_importance_cross.csv', index=False, float_format='%.3f')
+    feature_importance_df.to_csv(f'{result_project_folder}/{project}_feature_importance_cross.csv', index=False,
+                                 float_format='%.3f')
     print()
 
 

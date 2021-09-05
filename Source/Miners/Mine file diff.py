@@ -2,10 +2,9 @@ import os, csv, json, joblib
 import pandas as pd
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import shutil
 from tqdm import tqdm
 from SimpleParser import Change
-from config import *
+from ....Config import *
 
 def main():
     miner = DiffMiner(project, replace=False, verbose=False)

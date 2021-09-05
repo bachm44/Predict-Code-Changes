@@ -3,7 +3,7 @@ from keras.layers import Dense, Dropout
 import keras
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import class_weight
-from Util import *
+from ..Util import *
 
 
 def build_model(n):
