@@ -1,7 +1,7 @@
 projects = ['Libreoffice', 'Eclipse', 'Gerrithub']
 project = projects[0]
 
-data_folder = "../../Data"
+data_folder = "Data"
 root = f"{data_folder}/{project}"
 change_folder = "change"
 change_directory_path = f'{root}/{change_folder}'

@@ -106,6 +106,13 @@ Open `Predict-Code-Change` as project in Pycharm or any other python IDE. People
 tool should directly jump to [Experimentation](#exp) section. All the data need for running the experiments are
 already uploaded. If you want to run them on your own mined dataset, complete the following two sections first.
 
+In order to run this project without Pycharm, export environmental variable
+in source directory:
+
+```
+export PYTHONPATH=.
+```
+
 ### <a id="mining">Mining</a>
 
 * Run the [`Source/Miners/Complete Mining Process.py`](Source/Miners/Complete%20mining%20process.py) file to start mining.

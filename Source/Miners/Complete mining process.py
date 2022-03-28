@@ -104,7 +104,7 @@ def extract_join_dates(profile_root):
         else:
             selected = change_list_df
 
-        for (_, _, _, _, created, _, owner, reviewers, _, _) in selected.itertuples(name=None):
+        for (_, _, _, _, created, _, owner, reviewers, _, _, _, _, _) in selected.itertuples(name=None):
             if account_id == owner or account_id in reviewers:
                 # print(account_id, dates[index], change_dates[change_index])
                 dates[index] = created

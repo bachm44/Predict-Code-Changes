@@ -128,3 +128,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+Data/**/change
+Data/**/changes
+Data/**/diff
+Data/**/profile
+Libreoffice_selected_projects.csv
