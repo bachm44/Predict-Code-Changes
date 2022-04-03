@@ -12,6 +12,7 @@ account_list_df['registered_on'] = pd.to_datetime(account_list_df['registered_on
 account_list_df['name'] = account_list_df['name'].apply(str)
 
 change_list_df = joblib.load(selected_change_list_filepath)
+print(change_list_df)
 change_list_df = change_list_df.sort_values(by=['change_id']).reset_index(drop=True)
 for col in ['created', 'updated']:
     change_list_df.loc[:, col] = change_list_df[col].apply(pd.to_datetime)

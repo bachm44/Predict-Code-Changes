@@ -107,25 +107,33 @@ tool should directly jump to [Experimentation](#exp) section. All the data need 
 already uploaded. If you want to run them on your own mined dataset, complete the following two sections first.
 
 In order to run this project without Pycharm, export environmental variable
-in source directory:
+in project root directory:
 
+Unix:
 ```
-export PYTHONPATH=.
+export PYTHONPATH=$(pwd)
+```
+Windows:
+```
+set PYTHONPATH=%cd%
 ```
 
 ### <a id="mining">Mining</a>
 
+
+#### Step 1 - Mining projects
 * Run the [`Source/Miners/Complete Mining Process.py`](Source/Miners/Complete%20mining%20process.py) file to start mining.
 * Set the project name, make sure Gerrit class has corresponding Gerrit server address for this project.
-* Check if the directories for the data to be dumbed is created.
+* Check if the directories for the data to be saved is created.
 * Set the start and end time period, changes created and closed in that period will be collected. Make
   sure the time format is valid. Check existing code in [`Source/Miners/Miner.py`](Source/Miners/Miner.py) for example.
 * This step is long and time-consuming. Specially, because during downloading large chunks of
 data, Gerrit servers randomly close the connection, and you have to rerun the miner several times
 till it is successful in mining all changes within a period.
-
 * <b> For best experience, run each steps in the miner individually. </b> When you want to run one, comment out the others.
 Gerrit change response collected by [`Source/Miners/Miner.py`](Source/Miners/Miner.py) doesn't contain file contents.
+
+#### Step 2 - Mining file diff
 * Run the [`Source/Miners/Mine file diff.py`](Source/Miners/Mine%20file%20diff.py) after completing previous steps, to mine
 file contents for first revision of each selected change request.
 * This miner doesn't batch download, so expect a looooong time to finish
@@ -138,6 +146,10 @@ mining changes. Also, occasionally Gerrit will close connections or send
     * changes: Individual change requests.
     * diff: File diff content for first revision of each change request.
     * profile: Profile of Gerrit authors.
+
+#### Step 3 - Removing changes that do not contain file diff
+* Run the [`Source/Miners/Remove non diff changes.py`](Source/Miners/Remove%20non%20diff%20changes.py)
+
 
 ### <a id="feature_calculation">Feature calculation</a>
 

@@ -7,12 +7,12 @@ from SimpleParser import Change
 from Config import *
 
 def main():
-    miner = DiffMiner(project, replace=False, verbose=False)
+    miner = DiffMiner(project, replace=False, verbose=True)
     change_revision_file_ids_filename = os.path.join(f'{miner.root}/{project}_change_revision_file_ids.csv')
     create_change_summary(miner.root, project, change_revision_file_ids_filename)
 
     # uncomment this if you need to rerun for mining rest of the file diffs.
-    # list_not_mined_selected_changes()
+    list_not_mined_selected_changes()
 
     # only needed for the first time
     change_revision_file_ids_filename = os.path.join(f'{miner.root}/{project}_change_revision_file_ids_left.csv')

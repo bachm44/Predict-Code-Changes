@@ -17,6 +17,7 @@ folds = 11
 runs = 10
 account_list_filepath = f'{root}/{project}_account_list.csv'
 change_list_filepath = f'{root}/{project}_change_list.csv'
+selected_changes_path = f"{root}/{project}_selected_changes.csv"
 selected_change_list_filepath = f'{root}/{project}_selected_change_list.csv'
 
 features_group = {

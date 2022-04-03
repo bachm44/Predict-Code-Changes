@@ -52,7 +52,6 @@ def main():
     extract_join_dates(profile_root)
 
     # 8. select changes
-    selected_changes_path = f"{root}/{project}_selected_changes.csv"
     select_changes(selected_changes_path)
 
     # 9. break batch change file contents into individual change file
@@ -62,8 +61,7 @@ def main():
     # this is better to do after selecting changes
     # 10. mine change diff using 'Mine file diff.py' file.
 
-    # remove changes from the selected changes list for which file diff content was not found
-    remove_changes_without_diff(selected_changes_path)
+    # 11. remove non diff changes using 'Remove non diff changes.py' file.
 
 
 def is_profile_file(filename: str) -> bool:
@@ -178,7 +176,8 @@ def make_change_list():
     change_list_df = pd.DataFrame(change_details).sort_values(by=["change_id"])
     # need joblib because 'reviewers' column contains list of int and dataframe can't handle that
     change_list_df.drop_duplicates(['change_id'], inplace=True)
-    joblib.dump(change_list_df, change_list_filepath)
+    joblib.dump(change_list_df, change_list_filepath, compress=3)
+    # change_list_df.to_csv(change_list_filepath, index=False)
 
 
 def is_bot(name):
@@ -222,21 +221,6 @@ def find_and_remove_bot_accounts():
     joblib.dump(df, change_list_filepath)
 
 
-def remove_changes_without_diff(selected_changes_path):
-    change_numbers = [int(filename.split('_')[1]) for filename in os.listdir(diff_root)]
-    selected_changes = pd.read_csv(selected_changes_path)
-    old_number = selected_changes.shape[0]
-    selected_changes = selected_changes[selected_changes['change_id'].isin(change_numbers)]
-
-    print("Changes reduced from {0} to {1} after removing those without diff file.".format(
-        old_number, selected_changes.shape[0]))
-    selected_changes.to_csv(selected_changes_path, index=False)
-
-    df = joblib.load(change_list_filepath)
-    df = df[df['change_id'].isin(selected_changes['change_id'].values)]
-    joblib.dump(df, selected_change_list_filepath)
-
-
 def break_changes(broken_changes_directory):
     print("Breaking changes into individual files")
     if not os.path.exists(broken_changes_directory):
@@ -253,10 +237,15 @@ def break_changes(broken_changes_directory):
 
 def make_account_list():
     change_list_df = joblib.load(change_list_filepath)
+    # change_list_df = pd.read_csv(change_list_filepath)
+    # change_list_df['reviewers'].astype()
+    print(change_list_df.info())
     accounts = set(change_list_df['owner'].values)
+    print(change_list_df['reviewers'].values)
     accounts.update(set(np.concatenate(change_list_df['reviewers'].values)))
 
     accounts = pd.DataFrame(accounts, columns=['account_id'])
+    print(accounts)
     accounts['account_id'] = accounts['account_id'].astype(int).values
     accounts.to_csv(account_list_filepath, index=False)
 
