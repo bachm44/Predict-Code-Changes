@@ -128,6 +128,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-Data/
-Results/
+/Data/
+/Results/
 Libreoffice_selected_projects.csv
+/Eclipse_selected_projects.csv
