@@ -16,9 +16,9 @@ def remove_changes_without_diff():
         old_number, selected_changes.shape[0]))
     selected_changes.to_csv(selected_changes_path, index=False)
 
-    df = joblib.load(change_list_filepath)
+    df = pd.read_csv(change_list_filepath)
     df = df[df['change_id'].isin(selected_changes['change_id'].values)]
-    joblib.dump(df, selected_change_list_filepath)
+    df.to_csv(selected_change_list_filepath, index=False)
 
 
 if __name__ == '__main__':

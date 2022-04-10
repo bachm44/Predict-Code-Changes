@@ -1,12 +1,10 @@
-from Miner import *
-import os, joblib
-from SimpleParser import *
+import joblib
+import ast
 from tqdm import tqdm
-from Source.Util import *
 
-# changes created and closed within this time is selected by select_changes method.
-before = {'Libreoffice': '2019', 'Eclipse': '2017', 'Gerrithub': '2019'}
-after = {'Libreoffice': '2012', 'Eclipse': '2012', 'Gerrithub': '2016'}
+from Miner import *
+from SimpleParser import *
+from Source.Util import *
 
 def main():
     # create data directories if mining for the first time
@@ -19,11 +17,15 @@ def main():
         exit(-1)
 
     miner = Miner(gerrit=gerrit, root=root, replace=False)
-    #
-    # # 2. Download change details
+
+    # 2. Download change details
     parameters = Parameters(
-        status=Status.closed, start_index=0, end_index=500, n_jobs=4, batch_size=100,
-        after='', before='2019-00-00 00:00:00.000000000',
+        status=Status.closed,
+        # start_index=0,
+        # end_index=500,
+        n_jobs=4,
+        batch_size=100,
+        after=after[project], before=before[project],
         fields=[Field.all_revisions, Field.all_files, Field.messages, Field.detailed_labels, Field.all_commits]
     )
 
@@ -93,7 +95,8 @@ def extract_join_dates(profile_root):
     dates = pd.to_datetime(account_list['registered_on']).values
 
     # find the earliest record for this account in change list
-    change_list_df = joblib.load(change_list_filepath)
+    change_list_df = pd.read_csv(change_list_filepath)
+    change_list_df['reviewers'] = change_list_df['reviewers'].apply(lambda x: ast.literal_eval(x))
     change_list_df['created'] = pd.to_datetime(change_list_df['created'])
 
     for index, account_id in tqdm(enumerate(accounts)):
@@ -102,10 +105,10 @@ def extract_join_dates(profile_root):
         else:
             selected = change_list_df
 
-        for (_, _, _, _, created, _, owner, reviewers, _, _, _, _, _) in selected.itertuples(name=None):
-            if account_id == owner or account_id in reviewers:
+        for _, row in selected.iterrows():
+            if account_id == row['owner'] or account_id in row['reviewers']:
                 # print(account_id, dates[index], change_dates[change_index])
-                dates[index] = created
+                dates[index] = row['created']
                 break
 
     account_list['registered_on'] = dates
@@ -143,6 +146,7 @@ def make_change_list():
         "project": [],
         "subject": [],
         "created": [],
+        "updated": [],
         "closed": [],
         "owner": [],
         "reviewers": [],
@@ -158,7 +162,7 @@ def make_change_list():
         with open(os.path.join(change_directory_path, filename), 'r', encoding='utf-8') as input_file:
             for change_json in load_change_jsons(input_file):
 
-                for key in ["project", "created", "subject", "status"]:
+                for key in ["project", "created", "updated", "subject", "status"]:
                     change_details[key].append(change_json[key])
 
                 change = Change(change_json)
@@ -176,8 +180,7 @@ def make_change_list():
     change_list_df = pd.DataFrame(change_details).sort_values(by=["change_id"])
     # need joblib because 'reviewers' column contains list of int and dataframe can't handle that
     change_list_df.drop_duplicates(['change_id'], inplace=True)
-    joblib.dump(change_list_df, change_list_filepath, compress=3)
-    # change_list_df.to_csv(change_list_filepath, index=False)
+    change_list_df.to_csv(change_list_filepath, index=False)
 
 
 def is_bot(name):
@@ -207,7 +210,8 @@ def find_and_remove_bot_accounts():
     df = df[~df['account_id'].isin(bots)]
     df.to_csv(account_list_filepath, index=False)
 
-    df = joblib.load(change_list_filepath)
+    df = pd.read_csv(change_list_filepath)
+    df['reviewers'] = df['reviewers'].apply(lambda x: ast.literal_eval(x))
     reviewers_list = df['reviewers'].values
 
     result = []
@@ -236,16 +240,12 @@ def break_changes(broken_changes_directory):
 
 
 def make_account_list():
-    change_list_df = joblib.load(change_list_filepath)
-    # change_list_df = pd.read_csv(change_list_filepath)
-    # change_list_df['reviewers'].astype()
-    print(change_list_df.info())
+    change_list_df = pd.read_csv(change_list_filepath)
+    change_list_df['reviewers'] = change_list_df['reviewers'].apply(lambda x: ast.literal_eval(x))
     accounts = set(change_list_df['owner'].values)
-    print(change_list_df['reviewers'].values)
     accounts.update(set(np.concatenate(change_list_df['reviewers'].values)))
 
     accounts = pd.DataFrame(accounts, columns=['account_id'])
-    print(accounts)
     accounts['account_id'] = accounts['account_id'].astype(int).values
     accounts.to_csv(account_list_filepath, index=False)
 
@@ -258,7 +258,8 @@ def select_changes(output_path):
     print('Selecting changes for project ' + project)
 
     # 1. Create selected changes list
-    df = joblib.load(change_list_filepath)
+    df = pd.read_csv(change_list_filepath)
+    df['reviewers'] = df['reviewers'].apply(lambda x: ast.literal_eval(x))
     print(df.shape, df['created'].min(), df['created'].max())
     # filter by mining time
     df = df[(df['created'] >= after[project]) & (df['created'] <= before[project])]

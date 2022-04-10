@@ -1,6 +1,18 @@
 projects = ['Libreoffice', 'Eclipse', 'Gerrithub']
 project = projects[0]
 
+# changes created and closed within this time is selected by select_changes method.
+before = {
+    'Libreoffice': '2019-01-01',
+    'Eclipse': '2017-01-01',
+    'Gerrithub': '2019-01-01'
+}
+after = {
+    'Libreoffice': '2012-01-01',
+    'Eclipse': '2012-01-01',
+    'Gerrithub': '2016-01-01'
+}
+
 data_folder = "Data"
 root = f"{data_folder}/{project}"
 change_folder = "change"
@@ -8,7 +20,7 @@ change_directory_path = f'{root}/{change_folder}'
 changes_root = f"{root}/changes"
 diff_root = f'{root}/diff'
 
-result_folder = "../../Results"
+result_folder = "Results"
 result_project_folder = f"{result_folder}/{project}"
 
 target = 'status'
